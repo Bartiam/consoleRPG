@@ -76,8 +76,8 @@ void setup(Character& character, std::vector<Enemy>& enemies)
 		std::cin >> character.damage;
 	}
 
-	character.x = rand() % ROW;
-	character.y = rand() % COL;
+	character.x = rand() % (ROW - 1) + 1;
+	character.y = rand() % (COL - 1) + 1;
 
 	for (int i = 0; i < enemies.size(); ++i)
 	{
@@ -89,8 +89,8 @@ void setup(Character& character, std::vector<Enemy>& enemies)
 
 	for (int i = 0; i < enemies.size(); ++i)
 	{
-		enemies[i].x = rand() % ROW;
-		enemies[i].y = rand() % COL;
+		enemies[i].x = rand() % (ROW - 1) + 1;
+		enemies[i].y = rand() % (COL - 1) + 1;
 
 		if ((enemies[i].x == character.x) && (enemies[i].y == character.y))
 		{
@@ -103,12 +103,64 @@ void setup(Character& character, std::vector<Enemy>& enemies)
 	}
 }
 
+void insertion_sort_for_enemies(std::vector<Enemy>& enemies)
+{
+	int tempX, tempY;
+	for (int i = 1; i < enemies.size(); ++i)
+	{
+		int j = i - 1;
+		tempX = enemies[i].x;
+		tempY = enemies[i].y;
+		while (j >= 0 && enemies[j].x > tempX)
+		{
+			enemies[j + 1].x = enemies[j].x;
+			enemies[j + 1].y = enemies[j].y;
+			--j;
+		}
+		enemies[j + 1].x = tempX;
+		enemies[j + 1].y = tempY;
+	}
+}
+
+void draw(const Character& character, const std::vector<Enemy>& enemies)
+{
+	int itEnemy = 0;
+	for (int i = 0; i < ROW; ++i)
+	{
+		for (int j = 0; j < COL; ++j)
+		{
+			if (j == 0 || j == (COL - 1) ||
+				i == 0 || i == (ROW - 1))
+			{
+				std::cout << '#';
+			}
+			else if (character.x == i && character.y == j)
+			{
+				std::cout << 'P';
+			}
+			else if (enemies[itEnemy].x == i && enemies[itEnemy].y == j)
+			{
+				std::cout << 'E';
+				if (itEnemy < 4)
+				{
+					++itEnemy;
+				}
+			}
+			else std::cout << ' ';
+		}
+		std::cout << std::endl;
+	}
+}
+
 int main()
 {
 	srand(time(NULL));
 	Character player;
 	std::vector<Enemy> enemies(5);
 	setup(player, enemies);
+	insertion_sort_for_enemies(enemies);
+	draw(player, enemies);
+	
 
 	return 0;
 }
