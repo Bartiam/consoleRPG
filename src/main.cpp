@@ -4,8 +4,9 @@
 #include <vector>
 #include <conio.h>
 
-const int ROW = 10;
-const int COL = 10;
+const int ROW = 20;
+const int COL = 50;
+char map[ROW][COL];
 
 enum Dir { STOP = 0,LEFT,RIGHT,UP,DOWN };
 
@@ -46,8 +47,8 @@ bool is_correct_HP_armor_damage(const int& info)
 
 void setup_rand_position_and_parametr(Character& character, std::vector<Enemy>& enemies)
 {
-	character.x = rand() % (ROW - 1) + 1;
-	character.y = rand() % (COL - 1) + 1;
+	character.x = rand() % (ROW - 2) + 1;
+	character.y = rand() % (COL - 2) + 1;
 
 	for (int i = 0; i < enemies.size(); ++i)
 	{
@@ -59,8 +60,8 @@ void setup_rand_position_and_parametr(Character& character, std::vector<Enemy>& 
 
 	for (int i = 0; i < enemies.size(); ++i)
 	{
-		enemies[i].x = rand() % (ROW - 1) + 1;
-		enemies[i].y = rand() % (COL - 1) + 1;
+		enemies[i].x = rand() % (ROW - 2) + 1;
+		enemies[i].y = rand() % (COL - 2) + 1;
 
 		if (enemies[i].x == character.x)
 		{
@@ -113,29 +114,9 @@ void setup(Character& character, std::vector<Enemy>& enemies, Dir& dir)
 	setup_rand_position_and_parametr(character, enemies);
 }
 
-void insertion_sort_for_enemies(std::vector<Enemy>& enemies)
-{
-	int tempX, tempY;
-	for (int i = 1; i < enemies.size(); ++i)
-	{
-		int j = i - 1;
-		tempX = enemies[i].x;
-		tempY = enemies[i].y;
-		while (j >= 0 && enemies[j].x > tempX)
-		{
-			enemies[j + 1].x = enemies[j].x;
-			enemies[j + 1].y = enemies[j].y;
-			--j;
-		}
-		enemies[j + 1].x = tempX;
-		enemies[j + 1].y = tempY;
-	}
-}
-
 void draw(const Character& character, const std::vector<Enemy>& enemies)
 {
 	system("cls");
-	int itEnemy = 0;
 	for (int i = 0; i < ROW; ++i)
 	{
 		for (int j = 0; j < COL; ++j)
@@ -143,28 +124,32 @@ void draw(const Character& character, const std::vector<Enemy>& enemies)
 			if (j == 0 || j == (COL - 1) ||
 				i == 0 || i == (ROW - 1))
 			{
-				std::cout << '#';
+				map[i][j] = '#';
 			}
 			else if (character.x == i && character.y == j)
 			{
-				std::cout << 'P';
+				map[i][j] = 'P';
 			}
-			else if (enemies[itEnemy].x == i && enemies[itEnemy].y == j)
-			{
-				std::cout << 'E';
-				if (itEnemy < 4)
-				{
-					++itEnemy;
-				}
-			}
-			else std::cout << ' ';
+			else map[i][j] = ' ';
+		}
+	}
+
+	for (int i = 0; i < enemies.size(); ++i)
+		map[enemies[i].x][enemies[i].y] = 'E';
+
+	for (int i = 0; i < ROW; ++i)
+	{
+		for (int j = 0; j < COL; ++j)
+		{
+			std::cout << map[i][j];
 		}
 		std::cout << std::endl;
 	}
 }
 
-void input(Character& character, Dir& dir)
+void input(Character& character, Dir& dir, std::vector<Enemy>& enemies)
 {
+	int dirEnemy;
 	if (_kbhit())
 	{
 		switch (_getch())
@@ -194,10 +179,32 @@ void input(Character& character, Dir& dir)
 			dir = DOWN;
 			break;
 		}
+		
+		for (int i = 0; i < enemies.size(); ++i)
+		{
+			dirEnemy = rand() % 5;
+			switch (dirEnemy)
+			{
+			case 0:
+				break;
+			case 1:
+				--enemies[i].y;
+				break;
+			case 2:
+				++enemies[i].y;
+				break;
+			case 3:
+				--enemies[i].x;
+				break;
+			case 4:
+				++enemies[i].x;
+				break;
+			}
+		}
 	}
 }
 
-void logic(Character& character, Dir& dir, bool& gameOver)
+void logic(Character& character, std::vector<Enemy>& enemies, Dir& dir, bool& gameOver)
 {
 	switch (dir)
 	{
@@ -214,9 +221,7 @@ void logic(Character& character, Dir& dir, bool& gameOver)
 		++character.x;
 		break;
 	}
-
 	dir = STOP;
-
 }
 
 int main()
@@ -228,12 +233,11 @@ int main()
 	bool gameOver = false;
 
 	setup(player, enemies, dir);
-	insertion_sort_for_enemies(enemies);
 	while (!gameOver)
 	{
 		draw(player, enemies);
-		input(player, dir);
-		logic(player, dir, gameOver);
+		input(player, dir, enemies);
+		logic(player, enemies, dir, gameOver);
 	}
 	
 
