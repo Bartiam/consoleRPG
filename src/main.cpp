@@ -4,8 +4,8 @@
 #include <vector>
 #include <conio.h>
 
-const int ROW = 20;
-const int COL = 50;
+const int ROW = 10;
+const int COL = 10;
 
 enum Dir { STOP = 0,LEFT,RIGHT,UP,DOWN };
 
@@ -48,7 +48,7 @@ void setup_rand_position_and_parametr(Character& character, std::vector<Enemy>& 
 {
 	character.x = rand() % (ROW - 1) + 1;
 	character.y = rand() % (COL - 1) + 1;
-	
+
 	for (int i = 0; i < enemies.size(); ++i)
 	{
 		enemies[i].name = "Enemy #" + std::to_string(i + 1);
@@ -214,6 +214,8 @@ void logic(Character& character, Dir& dir, bool& gameOver)
 		++character.x;
 		break;
 	}
+
+	dir = STOP;
 
 }
 
