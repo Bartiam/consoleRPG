@@ -131,6 +131,10 @@ void setup(Character& character, std::vector<Enemy>& enemies, Dir& dir, Fruit& f
 void draw(const Character& character, const std::vector<Enemy>& enemies, Fruit& fruit)
 {
 	system("cls");
+
+	std::cout << "Character HP: " << character.HP << "\nCharacter armor: " <<
+		character.armor << "\nCharacter damage: " << character.damage << std::endl;
+
 	for (int i = 0; i < ROW; ++i)
 	{
 		for (int j = 0; j < COL; ++j)
@@ -160,8 +164,6 @@ void draw(const Character& character, const std::vector<Enemy>& enemies, Fruit& 
 		}
 		std::cout << std::endl;
 	}
-	std::cout << "Character HP: " << character.HP << "\nCharacter armor: " <<
-		character.armor << "\nCharacter damage: " << character.damage << std::endl;
 }
 
 void input(Character& character, Dir& dir)
@@ -213,21 +215,26 @@ void rand_position_fruit(const Character& character, const std::vector<Enemy>& e
 
 void logic(Character& character, std::vector<Enemy>& enemies, Dir& dir, bool& gameOver, Fruit& fruit)
 {
-	int x, y;
-	x = character.x; y = character.y;
+	int x = character.x; 
+	int y = character.y;
+
 	switch (dir)
 	{
 	case LEFT:
-		--character.y;
+		if (character.y != 1)
+			--character.y;
 		break;
 	case RIGHT:
-		++character.y;
+		if (character.y != COL -2)
+			++character.y;
 		break;
 	case UP:
-		--character.x;
+		if (character.x != 1 )
+			--character.x;
 		break;
 	case DOWN:
-		++character.x;
+		if (character.x != ROW - 2)
+			++character.x;
 		break;
 	}
 	dir = STOP;
@@ -243,19 +250,24 @@ void logic(Character& character, std::vector<Enemy>& enemies, Dir& dir, bool& ga
 			case 0:
 				break;
 			case 1:
-				--enemies[i].y;
+				if (enemies[i].y != 1)
+					--enemies[i].y;
 				break;
 			case 2:
-				++enemies[i].y;
+				if (enemies[i].y != COL - 2)
+					++enemies[i].y;
 				break;
 			case 3:
-				--enemies[i].x;
+				if (enemies[i].x != 1)
+					--enemies[i].x;
 				break;
 			case 4:
-				++enemies[i].x;
+				if (enemies[i].x != ROW - 2)
+					++enemies[i].x;
 				break;
 			}
 		}
+		draw(character, enemies, fruit);
 	}
 	
 	Enemy enemy(enemies[enemies.size() - 1]);
@@ -264,9 +276,6 @@ void logic(Character& character, std::vector<Enemy>& enemies, Dir& dir, bool& ga
 	{
 		if (enemies[i].x == character.x && enemies[i].y == character.y)
 		{
-			std::cout << character.name << " took damage: -" <<
-				character.damage << " to this enemy: " << enemies[i].name << std::endl;
-
 			enemies[i].armor -= character.damage;
 			character.armor -= enemies[i].damage;
 			if (enemies[i].armor < 0)
@@ -274,6 +283,7 @@ void logic(Character& character, std::vector<Enemy>& enemies, Dir& dir, bool& ga
 				enemies[i].HP += enemies[i].armor;
 				if (enemies[i].HP <= 0)
 				{
+					std::cout << "You won this fight! Against this opponent: " << enemies[i].name << std::endl;
 					enemies[i] = enemy;
 					enemies.pop_back();
 					rand_position_fruit(character, enemies, fruit);
@@ -283,25 +293,27 @@ void logic(Character& character, std::vector<Enemy>& enemies, Dir& dir, bool& ga
 			{
 				character.HP += character.armor;
 				character.armor = 0;
-				std::cout << "Game over! " << std::endl;
-				if (character.HP <= 0) gameOver = true;
+				if (character.HP <= 0)
+				{
+					system("cls");
+					std::cout << "\n\n\n\n\t\t\t\t\t\tGame over! " << std::endl;
+					gameOver = true;
+				}
 			}
 		}
 		if (character.x == fruit.x && character.y == fruit.y)
 		{
 			character.HP += fruit.plusHP;
 			fruit.x = fruit.y = 0 ;
-		}
-		else if (character.x == fruit.x && character.y == fruit.y)
-		{
-			enemies[i].HP += fruit.plusHP;
-			fruit.x = fruit.y = 0;
+			draw(character, enemies, fruit);
 		}
 	}
 
 	if (enemies.size() == 0)
 	{
-		std::cout << "You win! " << std::endl;
+		system("cls");
+		std::cout << "\n\n\n\n\t\t\t\t\t\tThere are no enemies left. " <<
+			" \n\n\n\n\n\t\t\t\t\t\tYou have won! " << std::endl;
 		gameOver = true;
 	}
 }
@@ -316,9 +328,9 @@ int main()
 	bool gameOver = false;
 
 	setup(player, enemies, dir, fruit);
+	draw(player, enemies, fruit);
 	while (!gameOver)
 	{
-		draw(player, enemies, fruit);
 		input(player, dir);
 		logic(player, enemies, dir, gameOver, fruit);
 	}
