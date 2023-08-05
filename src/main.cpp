@@ -136,9 +136,10 @@ void menu(Character& character, std::vector<Enemy>& enemies,
 	std::string choose;
 
 	while (choose != "Begin" && choose != "begin" && 
-		choose != "Load" && choose != "load")
+		choose != "Load" && choose != "load" && 
+		choose != "Yes" && choose != "yes")
 	{
-		std::cout << "Begin - Start the game." << std::endl;
+		std::cout << "Begin - Start a new game." << std::endl;
 		std::cout << "Load - Load the game." << std::endl;
 		std::getline(std::cin, choose);
 
@@ -147,28 +148,31 @@ void menu(Character& character, std::vector<Enemy>& enemies,
 			load.open("..\\savefile.bin", std::ios::binary);
 			if (!load.is_open())
 			{
-				std::cout << "No data saved. " << std::endl;
-				std::cout << "Would you like to start a new game ?(yes or no)" << "\n:";
-				std::getline(std::cin, choose);
-				if (choose == "No" || choose == "no")
+				while (choose != "Yes" && choose != "yes")
 				{
-					gameOver = true;
-					return;
+					std::cout << "No data saved. " << std::endl;
+					std::cout << "Would you like to start a new game ?(yes or no)" << "\n:";
+					std::getline(std::cin, choose);
+					if (choose == "No" || choose == "no")
+					{
+						gameOver = true;
+						return;
+					}
+					else if (choose == "Yes" || choose == "yes")
+						setup(character, enemies, dir, fruit, load, gameOver);
+					else
+						std::cerr << "Error! You can only choose yes or no. Try again." << std::endl;
 				}
-				else if (choose == "Yes" || choose == "yes")
-				{
+			}
+			else
+			{
 
-				}
-				else
-				{
-
-				}
 			}
 		}
 		else if (choose == "Begin" || choose == "begin")
 			setup(character, enemies, dir, fruit, load, gameOver);
 		else 
-			std::cerr << "Error! You can only choose begin or load. " << std::endl;
+			std::cerr << "Error! You can only choose begin or load. Try again." << std::endl;
 	}
 }
 
@@ -357,7 +361,7 @@ void logic(Character& character, std::vector<Enemy>& enemies, Dir& dir, bool& ga
 	{
 		system("cls");
 		std::cout << "\n\n\n\n\t\t\t\t\t\tThere are no enemies left. " <<
-			" \n\n\n\n\n\t\t\t\t\t\tYou have won! " << std::endl;
+			"\t\t\t\t\t\tYou have won! " << std::endl;
 		gameOver = true;
 	}
 }
