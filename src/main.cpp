@@ -3,6 +3,7 @@
 #include <ctime>
 #include <vector>
 #include <conio.h>
+#include <fstream>
 
 const int ROW = 20;
 const int COL = 50;
@@ -88,10 +89,11 @@ void setup_rand_position_and_parametr(Character& character, std::vector<Enemy>& 
 	}
 }
 
-void setup(Character& character, std::vector<Enemy>& enemies, Dir& dir, Fruit& fruit)
+void setup(Character& character, std::vector<Enemy>& enemies, 
+	Dir& dir, Fruit& fruit, std::ifstream& load, bool& gameOver)
 {
 	dir = STOP;
-
+	
 	std::cout << "Enter a character name: ";
 	std::getline(std::cin, character.name);
 	while (!is_correct_name(character.name))
@@ -118,7 +120,7 @@ void setup(Character& character, std::vector<Enemy>& enemies, Dir& dir, Fruit& f
 	}
 
 	std::cout << "Enter the number of damage of the character: ";
-	std::cin >> character.damage;
+	std::cin >> character.damage; 
 	while (!is_correct_HP_armor_damage(character.damage))
 	{
 		std::cout << "Error! Incorrect intup damage. Try again." << std::endl;
@@ -126,6 +128,48 @@ void setup(Character& character, std::vector<Enemy>& enemies, Dir& dir, Fruit& f
 	}
 
 	setup_rand_position_and_parametr(character, enemies, fruit);
+}
+
+void menu(Character& character, std::vector<Enemy>& enemies,
+	Dir& dir, Fruit& fruit, std::ifstream& load, bool& gameOver)
+{
+	std::string choose;
+
+	while (choose != "Begin" && choose != "begin" && 
+		choose != "Load" && choose != "load")
+	{
+		std::cout << "Begin - Start the game." << std::endl;
+		std::cout << "Load - Load the game." << std::endl;
+		std::getline(std::cin, choose);
+
+		if (choose == "Load" || choose == "load")
+		{
+			load.open("..\\savefile.bin", std::ios::binary);
+			if (!load.is_open())
+			{
+				std::cout << "No data saved. " << std::endl;
+				std::cout << "Would you like to start a new game ?(yes or no)" << "\n:";
+				std::getline(std::cin, choose);
+				if (choose == "No" || choose == "no")
+				{
+					gameOver = true;
+					return;
+				}
+				else if (choose == "Yes" || choose == "yes")
+				{
+
+				}
+				else
+				{
+
+				}
+			}
+		}
+		else if (choose == "Begin" || choose == "begin")
+			setup(character, enemies, dir, fruit, load, gameOver);
+		else 
+			std::cerr << "Error! You can only choose begin or load. " << std::endl;
+	}
 }
 
 void draw(const Character& character, const std::vector<Enemy>& enemies, Fruit& fruit)
@@ -326,13 +370,18 @@ int main()
 	std::vector<Enemy> enemies(5);
 	Dir dir;
 	bool gameOver = false;
+	std::ofstream save;
+	std::ifstream load;
 
-	setup(player, enemies, dir, fruit);
-	draw(player, enemies, fruit);
-	while (!gameOver)
+	menu(player, enemies, dir, fruit, load, gameOver);
+	if (!gameOver)
 	{
-		input(player, dir);
-		logic(player, enemies, dir, gameOver, fruit);
+		draw(player, enemies, fruit);
+		while (!gameOver)
+		{
+			input(player, dir);
+			logic(player, enemies, dir, gameOver, fruit);
+		}
 	}
 	
 
