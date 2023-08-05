@@ -30,6 +30,12 @@ public:
 	int x = 0, y = 0;
 };
 
+struct Fruit
+{
+	int plusHP;
+	int x, y;
+};
+
 bool is_correct_name(const std::string& name)
 {
 	for (int i = 1; i < name.length(); ++i)
@@ -45,10 +51,18 @@ bool is_correct_HP_armor_damage(const int& info)
 	return true;
 }
 
-void setup_rand_position_and_parametr(Character& character, std::vector<Enemy>& enemies)
+void setup_rand_position_and_parametr(Character& character, std::vector<Enemy>& enemies, Fruit& fruit)
 {
-	character.x = rand() % (ROW - 2) + 1;
-	character.y = rand() % (COL - 2) + 1;
+	for (int i = 0; i < 1; ++i)
+	{
+		character.x = rand() % (ROW - 2) + 1;
+		character.y = rand() % (COL - 2) + 1;
+		fruit.x = rand() % (ROW - 2) + 1;
+		fruit.y = rand() % (ROW - 2) + 1;
+		if (character.x == fruit.x) --i;
+	}
+
+	fruit.plusHP = rand() % 30 + 20;
 
 	for (int i = 0; i < enemies.size(); ++i)
 	{
@@ -63,18 +77,18 @@ void setup_rand_position_and_parametr(Character& character, std::vector<Enemy>& 
 		enemies[i].x = rand() % (ROW - 2) + 1;
 		enemies[i].y = rand() % (COL - 2) + 1;
 
-		if (enemies[i].x == character.x)
+		if ((enemies[i].x == character.x) || (enemies[i].x == fruit.x))
 		{
 			--i;
 			continue;
 		}
-		
+
 		for (int j = 0; j < i; ++j)
 			if ((enemies[i].x == enemies[j].x) || (enemies[i].y == enemies[j].y)) --i;
 	}
 }
 
-void setup(Character& character, std::vector<Enemy>& enemies, Dir& dir)
+void setup(Character& character, std::vector<Enemy>& enemies, Dir& dir, Fruit& fruit)
 {
 	dir = STOP;
 
@@ -111,10 +125,10 @@ void setup(Character& character, std::vector<Enemy>& enemies, Dir& dir)
 		std::cin >> character.damage;
 	}
 
-	setup_rand_position_and_parametr(character, enemies);
+	setup_rand_position_and_parametr(character, enemies, fruit);
 }
 
-void draw(const Character& character, const std::vector<Enemy>& enemies)
+void draw(const Character& character, const std::vector<Enemy>& enemies, Fruit& fruit)
 {
 	system("cls");
 	for (int i = 0; i < ROW; ++i)
@@ -126,16 +140,17 @@ void draw(const Character& character, const std::vector<Enemy>& enemies)
 			{
 				map[i][j] = '#';
 			}
-			else if (character.x == i && character.y == j)
-			{
+			else if (character.x == i && character.y == j) 
 				map[i][j] = 'P';
-			}
-			else map[i][j] = ' ';
+			else if (fruit.x == i && fruit.y == j)
+				map[i][j] = 'F';
+			else 
+				map[i][j] = ' ';
 		}
 	}
 
 	for (int i = 0; i < enemies.size(); ++i)
-		map[enemies[i].x][enemies[i].y] = 'E';
+		map[enemies[i].x][enemies[i].y] = 'e';
 
 	for (int i = 0; i < ROW; ++i)
 	{
@@ -145,11 +160,12 @@ void draw(const Character& character, const std::vector<Enemy>& enemies)
 		}
 		std::cout << std::endl;
 	}
+	std::cout << "Character HP: " << character.HP << "\nCharacter armor: " <<
+		character.armor << "\nCharacter damage: " << character.damage << std::endl;
 }
 
-void input(Character& character, Dir& dir, std::vector<Enemy>& enemies)
+void input(Character& character, Dir& dir)
 {
-	int dirEnemy;
 	if (_kbhit())
 	{
 		switch (_getch())
@@ -179,7 +195,46 @@ void input(Character& character, Dir& dir, std::vector<Enemy>& enemies)
 			dir = DOWN;
 			break;
 		}
-		
+	}
+}
+
+void rand_position_fruit(const Character& character, const std::vector<Enemy>& enemies, Fruit& fruit)
+{
+	for (int i = 0; i < enemies.size(); ++i)
+	{
+		fruit.x = rand() % (ROW - 2) + 1;
+		fruit.y = rand() % (ROW - 2) + 1;
+		if (character.x == fruit.x) --i;
+		else if ((enemies[i].x == fruit.x) || (enemies[i].y == fruit.y)) --i;
+	}
+
+	fruit.plusHP = rand() % 30 + 20;
+}
+
+void logic(Character& character, std::vector<Enemy>& enemies, Dir& dir, bool& gameOver, Fruit& fruit)
+{
+	int x, y;
+	x = character.x; y = character.y;
+	switch (dir)
+	{
+	case LEFT:
+		--character.y;
+		break;
+	case RIGHT:
+		++character.y;
+		break;
+	case UP:
+		--character.x;
+		break;
+	case DOWN:
+		++character.x;
+		break;
+	}
+	dir = STOP;
+
+	if (character.x != x || character.y != y)
+	{
+		int dirEnemy;
 		for (int i = 0; i < enemies.size(); ++i)
 		{
 			dirEnemy = rand() % 5;
@@ -202,42 +257,70 @@ void input(Character& character, Dir& dir, std::vector<Enemy>& enemies)
 			}
 		}
 	}
-}
+	
+	Enemy enemy(enemies[enemies.size() - 1]);
 
-void logic(Character& character, std::vector<Enemy>& enemies, Dir& dir, bool& gameOver)
-{
-	switch (dir)
+	for (int i = 0; i < enemies.size(); ++i)
 	{
-	case LEFT:
-		--character.y;
-		break;
-	case RIGHT:
-		++character.y;
-		break;
-	case UP:
-		--character.x;
-		break;
-	case DOWN:
-		++character.x;
-		break;
+		if (enemies[i].x == character.x && enemies[i].y == character.y)
+		{
+			std::cout << character.name << " took damage: -" <<
+				character.damage << " to this enemy: " << enemies[i].name << std::endl;
+
+			enemies[i].armor -= character.damage;
+			character.armor -= enemies[i].damage;
+			if (enemies[i].armor < 0)
+			{
+				enemies[i].HP += enemies[i].armor;
+				if (enemies[i].HP <= 0)
+				{
+					enemies[i] = enemy;
+					enemies.pop_back();
+					rand_position_fruit(character, enemies, fruit);
+				}
+			}
+			if (character.armor < 0)
+			{
+				character.HP += character.armor;
+				character.armor = 0;
+				std::cout << "Game over! " << std::endl;
+				if (character.HP <= 0) gameOver = true;
+			}
+		}
+		if (character.x == fruit.x && character.y == fruit.y)
+		{
+			character.HP += fruit.plusHP;
+			fruit.x = fruit.y = 0 ;
+		}
+		else if (character.x == fruit.x && character.y == fruit.y)
+		{
+			enemies[i].HP += fruit.plusHP;
+			fruit.x = fruit.y = 0;
+		}
 	}
-	dir = STOP;
+
+	if (enemies.size() == 0)
+	{
+		std::cout << "You win! " << std::endl;
+		gameOver = true;
+	}
 }
 
 int main()
 {
 	srand(time(NULL));
 	Character player;
+	Fruit fruit;
 	std::vector<Enemy> enemies(5);
 	Dir dir;
 	bool gameOver = false;
 
-	setup(player, enemies, dir);
+	setup(player, enemies, dir, fruit);
 	while (!gameOver)
 	{
-		draw(player, enemies);
-		input(player, dir, enemies);
-		logic(player, enemies, dir, gameOver);
+		draw(player, enemies, fruit);
+		input(player, dir);
+		logic(player, enemies, dir, gameOver, fruit);
 	}
 	
 
