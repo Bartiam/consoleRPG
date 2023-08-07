@@ -9,7 +9,7 @@ const int ROW = 20;
 const int COL = 50;
 char map[ROW][COL];
 
-enum Dir { STOP = 0,LEFT,RIGHT,UP,DOWN };
+enum Dir { STOP = 0,LEFT,RIGHT,UP,DOWN, KEY_ESC = 27};
 
 struct Character
 {
@@ -94,86 +94,50 @@ void setup(Character& character, std::vector<Enemy>& enemies,
 {
 	dir = STOP;
 	
-	std::cout << "Enter a character name: ";
-	std::getline(std::cin, character.name);
+	enemies.resize(5);
+
+	std::cout << "\n\n\n\n\t\t\t\t\t\tEnter a character name: ";
+	std::cin >> character.name;
 	while (!is_correct_name(character.name))
 	{
-		std::cout << "Error! Incorrect intup name. Try again." << std::endl;
-		std::cout << "Enter a character name: ";
-		std::getline(std::cin, character.name);
+		std::cout << "\t\t\t\t\t\tError! Incorrect intup name. Try again." << std::endl;
+		std::cout << "\t\t\t\t\t\tEnter a character name: ";
+		std::cin >> character.name;
 	}
 
-	std::cout << "Enter the number of HP of the character: ";
+	std::cout << "\t\t\t\t\t\tEnter the number of HP of the character: ";
 	std::cin >> character.HP;
 	while (!is_correct_HP_armor_damage(character.HP))
 	{
-		std::cout << "Error! Incorrect intup HP. Try again." << std::endl;
+		std::cout << "\t\t\t\t\t\tError! Incorrect intup HP. Try again." << std::endl;
 		std::cin >> character.HP;
 	}
 
-	std::cout << "Enter the number of armor of the character: ";
+	std::cout << "\t\t\t\t\t\tEnter the number of armor of the character: ";
 	std::cin >> character.armor;
 	while (!is_correct_HP_armor_damage(character.armor))
 	{
-		std::cout << "Error! Incorrect intup armor. Try again." << std::endl;
+		std::cout << "\t\t\t\t\t\tError! Incorrect intup armor. Try again." << std::endl;
 		std::cin >> character.armor;
 	}
 
-	std::cout << "Enter the number of damage of the character: ";
+	std::cout << "\t\t\t\t\t\tEnter the number of damage of the character: ";
 	std::cin >> character.damage; 
 	while (!is_correct_HP_armor_damage(character.damage))
 	{
-		std::cout << "Error! Incorrect intup damage. Try again." << std::endl;
+		std::cout << "\t\t\t\t\t\tError! Incorrect intup damage. Try again." << std::endl;
 		std::cin >> character.damage;
 	}
 
 	setup_rand_position_and_parametr(character, enemies, fruit);
-}
 
-void menu(Character& character, std::vector<Enemy>& enemies,
-	Dir& dir, Fruit& fruit, std::ifstream& load, bool& gameOver)
-{
-	std::string choose;
-
-	while (choose != "Begin" && choose != "begin" && 
-		choose != "Load" && choose != "load" && 
-		choose != "Yes" && choose != "yes")
-	{
-		std::cout << "Begin - Start a new game." << std::endl;
-		std::cout << "Load - Load the game." << std::endl;
-		std::getline(std::cin, choose);
-
-		if (choose == "Load" || choose == "load")
-		{
-			load.open("..\\savefile.bin", std::ios::binary);
-			if (!load.is_open())
-			{
-				while (choose != "Yes" && choose != "yes")
-				{
-					std::cout << "No data saved. " << std::endl;
-					std::cout << "Would you like to start a new game ?(yes or no)" << "\n:";
-					std::getline(std::cin, choose);
-					if (choose == "No" || choose == "no")
-					{
-						gameOver = true;
-						return;
-					}
-					else if (choose == "Yes" || choose == "yes")
-						setup(character, enemies, dir, fruit, load, gameOver);
-					else
-						std::cerr << "Error! You can only choose yes or no. Try again." << std::endl;
-				}
-			}
-			else
-			{
-
-			}
-		}
-		else if (choose == "Begin" || choose == "begin")
-			setup(character, enemies, dir, fruit, load, gameOver);
-		else 
-			std::cerr << "Error! You can only choose begin or load. Try again." << std::endl;
-	}
+	std::cout << "\t\t\t\t\t\tCharacter management:" << 
+		"\n\t\t\t\t\t\tLeft - A. " << 
+		"\n\t\t\t\t\t\tRight - D." <<
+		"\n\t\t\t\t\t\tUp - W." <<
+		"\n\t\t\t\t\t\tDown - S." << 
+		"\n\t\t\t\t\t\tPause - ESC.\n" << std::endl;
+	system("pause");
 }
 
 void draw(const Character& character, const std::vector<Enemy>& enemies, Fruit& fruit)
@@ -192,11 +156,11 @@ void draw(const Character& character, const std::vector<Enemy>& enemies, Fruit& 
 			{
 				map[i][j] = '#';
 			}
-			else if (character.x == i && character.y == j) 
+			else if (character.x == i && character.y == j)
 				map[i][j] = 'P';
 			else if (fruit.x == i && fruit.y == j)
 				map[i][j] = 'F';
-			else 
+			else
 				map[i][j] = ' ';
 		}
 	}
@@ -211,6 +175,78 @@ void draw(const Character& character, const std::vector<Enemy>& enemies, Fruit& 
 			std::cout << map[i][j];
 		}
 		std::cout << std::endl;
+	}
+}
+
+void menu(Character& character, std::vector<Enemy>& enemies, Dir& dir,
+	Fruit& fruit, std::ifstream& load, bool& gameOver, std::ofstream& save)
+{
+	std::string choose;
+
+	system("cls");
+
+	while (choose != "Begin" && choose != "begin" && 
+		choose != "Load" && choose != "load" && 
+		choose != "Yes" && choose != "yes" &&
+		choose != "Exit" && choose != "exit")
+	{
+		if (enemies.size() > 0)
+		{
+			std::cout << "\n\n\n\n\t\t\t\t\t\tContinue - Continue the game." << std::endl;
+			std::cout << "\t\t\t\t\t\tBegin - Start a new game." << std::endl;
+		}
+		else 
+			std::cout << "\n\n\n\n\t\t\t\t\t\tBegin - Start a new game." << std::endl;
+		std::cout << "\t\t\t\t\t\tLoad - Load the game." << std::endl;
+		std::cout << "\t\t\t\t\t\tExit - Exit the game." << std::endl << "\t\t\t\t\t\t";
+		std::cin >> choose;
+
+		if (enemies.size() > 0 && choose == "Continue" || choose == "continue")
+		{
+			draw(character, enemies, fruit);
+			return;
+		}
+		else if (choose == "Load" || choose == "load")
+		{
+			load.open("..\\savefile.bin", std::ios::binary);
+			if (!load.is_open())
+			{
+				while (choose != "Yes" && choose != "yes")
+				{
+					std::cout << "\t\t\t\t\t\tNo data saved. " << std::endl;
+					std::cout << "\t\t\t\t\t\tWould you like to start a new game ?(yes or no)" << "\n\t\t\t\t\t\t:";
+					std::cin >> choose;
+					if (choose == "No" || choose == "no")
+					{
+						load.close();
+						gameOver = true;
+						return;
+					}
+					else if (choose == "Yes" || choose == "yes")
+					{
+						setup(character, enemies, dir, fruit, load, gameOver);
+						load.close();
+					}
+					else
+						std::cerr << "\t\t\t\t\t\tError! You can only choose yes or no. Try again." << std::endl;
+				}
+			}
+			else
+			{
+
+			}
+		}
+		else if (choose == "Begin" || choose == "begin")
+			setup(character, enemies, dir, fruit, load, gameOver);
+		else if (choose == "Exit" || choose == "exit")
+		{
+			load.close();
+			gameOver = true;
+			return;
+		}
+		else 
+			std::cerr << "\t\t\t\t\t\tError! You can only choose begin or load. Try again." << std::endl;
+
 	}
 }
 
@@ -244,6 +280,9 @@ void input(Character& character, Dir& dir)
 		case 'S':
 			dir = DOWN;
 			break;
+		case 27:
+			dir = KEY_ESC;
+			break;
 		}
 	}
 }
@@ -261,7 +300,8 @@ void rand_position_fruit(const Character& character, const std::vector<Enemy>& e
 	fruit.plusHP = rand() % 30 + 20;
 }
 
-void logic(Character& character, std::vector<Enemy>& enemies, Dir& dir, bool& gameOver, Fruit& fruit)
+void logic(Character& character, std::vector<Enemy>& enemies, Dir& dir,
+	bool& gameOver, Fruit& fruit, std::ifstream& load, std::ofstream& save)
 {
 	int x = character.x; 
 	int y = character.y;
@@ -283,6 +323,9 @@ void logic(Character& character, std::vector<Enemy>& enemies, Dir& dir, bool& ga
 	case DOWN:
 		if (character.x != ROW - 2)
 			++character.x;
+		break;
+	case KEY_ESC:
+		menu(character, enemies, dir, fruit, load, gameOver, save);
 		break;
 	}
 	dir = STOP;
@@ -371,20 +414,20 @@ int main()
 	srand(time(NULL));
 	Character player;
 	Fruit fruit;
-	std::vector<Enemy> enemies(5);
+	std::vector<Enemy> enemies;
 	Dir dir;
 	bool gameOver = false;
 	std::ofstream save;
 	std::ifstream load;
 
-	menu(player, enemies, dir, fruit, load, gameOver);
+	menu(player, enemies, dir, fruit, load, gameOver, save);
 	if (!gameOver)
 	{
 		draw(player, enemies, fruit);
 		while (!gameOver)
 		{
 			input(player, dir);
-			logic(player, enemies, dir, gameOver, fruit);
+			logic(player, enemies, dir, gameOver, fruit, load, save);
 		}
 	}
 	
