@@ -89,53 +89,84 @@ void setup_rand_position_and_parametr(Character& character, std::vector<Enemy>& 
 	}
 }
 
-void setup(Character& character, std::vector<Enemy>& enemies, 
-	Dir& dir, Fruit& fruit, std::ifstream& load, bool& gameOver)
+void loading_game(Character& character, std::vector<Enemy>& enemies, Fruit& fruit, std::ifstream& load)
+{
+	int size; std::string number;
+	load >> character.name >> character.HP >> character.damage >>
+		character.armor >> character.x >> character.y >> size;
+
+	enemies.resize(size);
+
+	for (int i = 0; i < enemies.size(); ++i)
+	{
+		load >> enemies[i].name >> number >> enemies[i].HP >> enemies[i].damage >>
+			enemies[i].armor >> enemies[i].x >> enemies[i].y;
+		enemies[i].name += " " + number;
+	}
+
+	load >> fruit.plusHP >> fruit.x >> fruit.y;
+}
+
+void setup(Character& character, std::vector<Enemy>& enemies, Dir& dir,
+	Fruit& fruit, std::ifstream& load, bool& gameOver, std::string& choose)
 {
 	dir = STOP;
-	
-	enemies.resize(5);
 
-	std::cout << "\n\n\n\n\t\t\t\t\t\tEnter a character name: ";
-	std::cin >> character.name;
-	while (!is_correct_name(character.name))
+	if (choose == "Load" || choose == "load")
 	{
-		std::cout << "\t\t\t\t\t\tError! Incorrect intup name. Try again." << std::endl;
-		std::cout << "\t\t\t\t\t\tEnter a character name: ";
+		loading_game(character, enemies, fruit, load);
+		std::cout << "\n\n\n\n\t\t\t\t\t\tloading..." << std::endl;
+		load.close();
+		std::cout << "\t\t\t\t\t\Loading was successful..." << std::endl;
+		system("pause");
+	}
+	else
+	{
+		enemies.resize(5);
+
+		std::cout << "\n\n\n\n\t\t\t\t\t\tEnter a character name: ";
 		std::cin >> character.name;
-	}
+		while (!is_correct_name(character.name))
+		{
+			std::cout << "\t\t\t\t\t\tError! Incorrect intup name. Try again." << std::endl;
+			std::cout << "\t\t\t\t\t\tEnter a character name: ";
+			std::cin >> character.name;
+		}
 
-	std::cout << "\t\t\t\t\t\tEnter the number of HP of the character: ";
-	std::cin >> character.HP;
-	while (!is_correct_HP_armor_damage(character.HP))
-	{
-		std::cout << "\t\t\t\t\t\tError! Incorrect intup HP. Try again." << std::endl;
+		std::cout << "\t\t\t\t\t\tEnter the number of HP of the character: ";
 		std::cin >> character.HP;
-	}
+		while (!is_correct_HP_armor_damage(character.HP))
+		{
+			std::cout << "\t\t\t\t\t\tError! Incorrect intup HP. Try again." << std::endl;
+			std::cin >> character.HP;
+		}
 
-	std::cout << "\t\t\t\t\t\tEnter the number of armor of the character: ";
-	std::cin >> character.armor;
-	while (!is_correct_HP_armor_damage(character.armor))
-	{
-		std::cout << "\t\t\t\t\t\tError! Incorrect intup armor. Try again." << std::endl;
+		std::cout << "\t\t\t\t\t\tEnter the number of armor of the character: ";
 		std::cin >> character.armor;
-	}
+		while (!is_correct_HP_armor_damage(character.armor))
+		{
+			std::cout << "\t\t\t\t\t\tError! Incorrect intup armor. Try again." << std::endl;
+			std::cin >> character.armor;
+		}
 
-	std::cout << "\t\t\t\t\t\tEnter the number of damage of the character: ";
-	std::cin >> character.damage; 
-	while (!is_correct_HP_armor_damage(character.damage))
-	{
-		std::cout << "\t\t\t\t\t\tError! Incorrect intup damage. Try again." << std::endl;
+		std::cout << "\t\t\t\t\t\tEnter the number of damage of the character: ";
 		std::cin >> character.damage;
+		while (!is_correct_HP_armor_damage(character.damage))
+		{
+			std::cout << "\t\t\t\t\t\tError! Incorrect intup damage. Try again." << std::endl;
+			std::cin >> character.damage;
+		}
+
+		setup_rand_position_and_parametr(character, enemies, fruit);
 	}
 
-	setup_rand_position_and_parametr(character, enemies, fruit);
+	system("cls");
 
-	std::cout << "\t\t\t\t\t\tCharacter management:" << 
-		"\n\t\t\t\t\t\tLeft - A. " << 
+	std::cout << "\n\n\n\n\t\t\t\t\t\tCharacter management:" <<
+		"\n\t\t\t\t\t\tLeft - A. " <<
 		"\n\t\t\t\t\t\tRight - D." <<
 		"\n\t\t\t\t\t\tUp - W." <<
-		"\n\t\t\t\t\t\tDown - S." << 
+		"\n\t\t\t\t\t\tDown - S." <<
 		"\n\t\t\t\t\t\tPause - ESC.\n" << std::endl;
 	system("pause");
 }
@@ -178,6 +209,28 @@ void draw(const Character& character, const std::vector<Enemy>& enemies, Fruit& 
 	}
 }
 
+void saving_game(Character& character, std::vector<Enemy>& enemies, Fruit& fruit, std::ofstream& save)
+{
+	save.open("..\\savefile.bin", std::ios::binary);
+
+	save << character.name << " " << character.HP << " " <<
+		character.damage << " " << character.armor << " " <<
+		character.x << " " << character.y << "\n";
+
+	save << enemies.size() << "\n";
+
+	for (int i = 0; i < enemies.size(); ++i)
+	{
+		save << enemies[i].name << " " << enemies[i].HP << " " <<
+			enemies[i].damage << " " << enemies[i].armor << " " <<
+			enemies[i].x << " " << enemies[i].y << "\n";
+	}
+
+	save << fruit.plusHP << " " << fruit.x << " " << fruit.y;
+
+	save.close();
+}
+
 void menu(Character& character, std::vector<Enemy>& enemies, Dir& dir,
 	Fruit& fruit, std::ifstream& load, bool& gameOver, std::ofstream& save)
 {
@@ -188,12 +241,14 @@ void menu(Character& character, std::vector<Enemy>& enemies, Dir& dir,
 	while (choose != "Begin" && choose != "begin" && 
 		choose != "Load" && choose != "load" && 
 		choose != "Yes" && choose != "yes" &&
-		choose != "Exit" && choose != "exit")
+		choose != "Exit" && choose != "exit" && 
+		choose != "Save" && choose != "save")
 	{
 		if (enemies.size() > 0)
 		{
 			std::cout << "\n\n\n\n\t\t\t\t\t\tContinue - Continue the game." << std::endl;
 			std::cout << "\t\t\t\t\t\tBegin - Start a new game." << std::endl;
+			std::cout << "\t\t\t\t\t\tSave - Save the game." << std::endl;
 		}
 		else 
 			std::cout << "\n\n\n\n\t\t\t\t\t\tBegin - Start a new game." << std::endl;
@@ -224,20 +279,25 @@ void menu(Character& character, std::vector<Enemy>& enemies, Dir& dir,
 					}
 					else if (choose == "Yes" || choose == "yes")
 					{
-						setup(character, enemies, dir, fruit, load, gameOver);
+						setup(character, enemies, dir, fruit, load, gameOver, choose);
 						load.close();
 					}
 					else
 						std::cerr << "\t\t\t\t\t\tError! You can only choose yes or no. Try again." << std::endl;
 				}
 			}
-			else
-			{
-
-			}
+			else 
+				setup(character, enemies, dir, fruit, load, gameOver, choose);
+		}
+		else if (choose == "Save" || choose == "save")
+		{
+			saving_game(character, enemies, fruit, save);
+			std::cout << "\t\t\t\t\t\tSaving was successful..." << std::endl;
+			system("pause");
+			menu(character, enemies, dir, fruit, load, gameOver, save);
 		}
 		else if (choose == "Begin" || choose == "begin")
-			setup(character, enemies, dir, fruit, load, gameOver);
+			setup(character, enemies, dir, fruit, load, gameOver, choose);
 		else if (choose == "Exit" || choose == "exit")
 		{
 			load.close();
